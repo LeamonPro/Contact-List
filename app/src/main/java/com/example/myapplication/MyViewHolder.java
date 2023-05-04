@@ -11,6 +11,16 @@ public class MyViewHolder extends RecyclerView.ViewHolder{
      TextView name;
      TextView phoneNumber;
      ImageButton edit,delete;
+     int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public MyViewHolder(View view){
         super(view);
         name=view.findViewById(R.id.name);

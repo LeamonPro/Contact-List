@@ -8,11 +8,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 
 import java.sql.Array;
 import java.util.ArrayList;
@@ -22,15 +25,22 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton add;
 
     private RecyclerView view;
+    recyclerAdapter adapter;
+    DatabaseHelper h;
+    int i=1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        usersList=new ArrayList<>();
+        h=new DatabaseHelper(this);
+        usersList=h.fetchAll();
+
         view=findViewById(R.id.list);
         add=findViewById(R.id.addButton);
-        setUserInfo();
-        setAdapter();
+
+        view.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        adapter=new recyclerAdapter(this,usersList);
+        view.setAdapter(adapter);
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,8 +68,11 @@ public class MainActivity extends AppCompatActivity {
                             alert.show();
                         }
                         else{
-
-                        usersList.add(new User(nameEntred.getText().toString(),phoneEntred.getText().toString()));
+                            User user=new User(nameEntred.getText().toString(),phoneEntred.getText().toString());
+                            usersList.add(user);
+                            h.addUser(user);
+                            adapter.notifyItemInserted(usersList.size()-1);
+                        //usersList.add(new User(nameEntred.getText().toString(),phoneEntred.getText().toString()));
                     }}
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -77,16 +90,26 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    private void setUserInfo(){
-        usersList.add(new User("Aymen","44648503"));
-        usersList.add(new User("Jihen","44200611"));
-        usersList.add(new User("Rihab","54871117"));
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu,menu);
+        MenuItem mi = menu.findItem(R.id.app_bar_search);
+        SearchView sv = (SearchView) mi.getActionView();
+        sv.setQueryHint("Contact name");
+        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                usersList=h.getAll(s);
+                adapter = new recyclerAdapter(MainActivity.this,usersList);
+                view.setAdapter(adapter);
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
     }
-    private void setAdapter(){
-        recyclerAdapter adapter=new recyclerAdapter(this,usersList);
-        RecyclerView.LayoutManager layoutManager=new LinearLayoutManager(getApplicationContext());
-        view.setLayoutManager(layoutManager);
-        view.setItemAnimator(new DefaultItemAnimator());
-        view.setAdapter(adapter);
-    }
+
 }
